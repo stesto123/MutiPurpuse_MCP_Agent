@@ -1,0 +1,113 @@
+# Example MCP server registry.
+#
+# Copy to a private path such as:
+#   ~/.config/ai-scout/mcp.yaml
+#
+# Keep OAuth client secrets, refresh tokens, API keys, and account identifiers
+# outside the repository. Prefer OS secret stores or host-mounted secret files.
+
+mcp_registry_version: 1
+
+servers:
+  - name: "calendar"
+    enabled: false
+    purpose: "Read free/busy data and create learning events"
+    transport:
+      type: "stdio"
+      command: "/absolute/path/to/calendar-mcp-server"
+      args:
+        - "--config"
+        - "/run/host-secrets/calendar_mcp_config.yaml"
+    tools:
+      - name: "list_calendars"
+        allow: true
+      - name: "read_availability"
+        allow: true
+      - name: "create_event"
+        allow: true
+      - name: "delete_event"
+        allow: true
+    secrets:
+      - name: "calendar_mcp_config"
+        mount_path: "/run/host-secrets/calendar_mcp_config.yaml"
+        source: "host_file"
+
+  - name: "rss"
+    enabled: false
+    purpose: "Fetch configured RSS feeds"
+    transport:
+      type: "stdio"
+      command: "/absolute/path/to/rss-mcp-server"
+      args: []
+    tools:
+      - name: "fetch_feed"
+        allow: true
+    secrets: []
+
+  - name: "github"
+    enabled: false
+    purpose: "Inspect public repositories through an MCP gateway"
+    transport:
+      type: "stdio"
+      command: "/absolute/path/to/github-mcp-server"
+      args: []
+    tools:
+      - name: "search_repositories"
+        allow: true
+      - name: "get_repository"
+        allow: true
+      - name: "list_releases"
+        allow: true
+      - name: "get_readme"
+        allow: true
+    secrets:
+      - name: "github_token"
+        mount_path: "/run/host-secrets/github_token"
+        source: "host_file"
+
+  - name: "youtube"
+    enabled: false
+    purpose: "Inspect channel metadata and video transcripts through MCP"
+    transport:
+      type: "stdio"
+      command: "/absolute/path/to/youtube-mcp-server"
+      args: []
+    tools:
+      - name: "list_channel_videos"
+        allow: true
+      - name: "get_transcript"
+        allow: true
+    secrets:
+      - name: "youtube_api_key"
+        mount_path: "/run/host-secrets/youtube_api_key"
+        source: "host_file"
+
+  - name: "web-search"
+    enabled: false
+    purpose: "Search web indexes through an MCP gateway"
+    transport:
+      type: "stdio"
+      command: "/absolute/path/to/web-search-mcp-server"
+      args: []
+    tools:
+      - name: "search"
+        allow: true
+      - name: "fetch_result"
+        allow: true
+    secrets:
+      - name: "web_search_api_key"
+        mount_path: "/run/host-secrets/web_search_api_key"
+        source: "host_file"
+
+tool_policy:
+  default_allow: false
+  require_explicit_allowed_tools: true
+  log_all_calls: true
+  redact_secret_like_values: true
+
+# Runtime notes:
+# - Keep servers disabled in committed examples.
+# - In private config, enable only the MCP servers you actually run locally.
+# - Discovery sources in sources.yaml call tools by server.tool name, for example
+#   github.search_repositories or web-search.search.
+# - Calendar defaults expect calendar.read_availability and calendar.create_event.

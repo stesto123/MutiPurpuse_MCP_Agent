@@ -1,0 +1,58 @@
+# Example AI Scout profile.
+#
+# Copy this file to a private location such as:
+#   ~/.config/ai-scout/profile.yaml
+#
+# Keep real names, calendars, preferences, and personal profile details out of
+# the repository. Values below are placeholders only.
+
+profile_version: 1
+profile_name: "example-local-profile"
+
+owner:
+  display_name: "Example User"
+  timezone: "Etc/UTC"
+  locale: "en-US"
+  preferred_language: "en"
+
+learning_goals:
+  - id: "agents"
+    label: "Track AI agent frameworks and MCP ecosystem changes"
+    priority: 5
+  - id: "evaluation"
+    label: "Collect practical evaluation and safety techniques"
+    priority: 4
+  - id: "automation"
+    label: "Find local-first automation patterns worth testing"
+    priority: 3
+
+availability:
+  default_session_minutes: 45
+  max_sessions_per_day: 2
+  weekly_windows:
+    - day: "mon"
+      start: "18:00"
+      end: "20:00"
+    - day: "wed"
+      start: "18:00"
+      end: "20:00"
+    - day: "sat"
+      start: "10:00"
+      end: "12:00"
+
+calendar:
+  provider: "mcp"
+  mcp_server_id: "calendar"
+  dry_run_calendar_id: "dry-run-only"
+  write_calendar_id: "${AI_SCOUT_CALENDAR_ID}"
+  default_event_visibility: "private"
+
+storage:
+  memory_dir: "${AI_SCOUT_DATA_DIR}/memory"
+  reports_dir: "${AI_SCOUT_DATA_DIR}/reports"
+  runs_dir: "${AI_SCOUT_DATA_DIR}/runs"
+
+privacy:
+  redact_profile_in_reports: true
+  allow_personalization_in_prompts: false
+  include_source_urls_in_reports: true

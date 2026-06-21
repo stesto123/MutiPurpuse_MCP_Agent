@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+
+# Local environment
+.env
+.env.*
+!.env.example
+.direnv/
+
+# Secrets and credentials
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+credentials.*.json
+token.json
+tokens.json
+google_oauth_client.json
+google_token.json
+client_secret*.json
+oauth*.json
+*.secret
+
+# Local-only config
+config/**/*.local.yaml
+config/**/*.local.yml
+config/**/secrets*.yaml
+config/**/secrets*.yml
+config/profiles/*.yaml
+config/profiles/*.yml
+!config/profiles/*.example.yaml
+!config/profiles/*.example.yml
+config/mcp/*.yaml
+config/mcp/*.yml
+!config/mcp/*.example.yaml
+!config/mcp/*.example.yml
+
+# Runtime data
+data/*
+!data/AGENTS.md
+!data/**/
+!data/**/.gitkeep
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Logs
+*.log
+logs/

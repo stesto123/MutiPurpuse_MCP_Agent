@@ -1,0 +1,8 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "ai_scout": "./src/ai_scout/graph/app.py:graph"
+  },
+  "env": ".env"
+}
+

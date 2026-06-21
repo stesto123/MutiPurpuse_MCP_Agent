@@ -1,0 +1,70 @@
+# Example source catalog.
+#
+# These entries are placeholders. Replace them in a private local config file
+# with sources you are allowed to access. The current CLI loads this as:
+#   ~/.config/ai-scout/sources.yaml
+#
+# All source fetching must happen via MCP tools, never through direct HTTP
+# clients in agent logic.
+
+source_catalog_version: 1
+
+defaults:
+  enabled: false
+  access: "mcp"
+  trust_level: "unverified"
+  max_items_per_run: 10
+  content_is_untrusted: true
+
+sources:
+  - id: "example-rss-ai-news"
+    label: "Example AI RSS feed"
+    kind: "rss"
+    enabled: false
+    mcp_server_id: "rss"
+    mcp_tool_name: "fetch_feed"
+    locator: "https://example.com/ai/feed.xml"
+    tags:
+      - "news"
+      - "ai"
+
+  - id: "example-github-topic"
+    label: "Example GitHub topic search"
+    kind: "code_repository_search"
+    enabled: false
+    mcp_server_id: "github"
+    mcp_tool_name: "search_repositories"
+    query: "topic:ai-agent language:python"
+    tags:
+      - "github"
+      - "agents"
+
+  - id: "example-video-channel"
+    label: "Example video channel"
+    kind: "video_channel"
+    enabled: false
+    mcp_server_id: "youtube"
+    mcp_tool_name: "list_channel_videos"
+    channel_id: "CHANNEL_ID_PLACEHOLDER"
+    tags:
+      - "video"
+      - "tutorial"
+
+  - id: "example-web-search"
+    label: "Example web search query"
+    kind: "web_search"
+    enabled: false
+    mcp_server_id: "web-search"
+    mcp_tool_name: "search"
+    query: "\"Model Context Protocol\" \"agent\""
+    tags:
+      - "mcp"
+      - "search"
+
+deduplication:
+  keys:
+    - "canonical_url"
+    - "source_item_id"
+    - "normalized_title"
+  normalize_titles: true
+  strip_tracking_parameters: true

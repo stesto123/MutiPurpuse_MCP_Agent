@@ -1,0 +1,51 @@
+# Local runtime template for AI Scout.
+#
+# Usage:
+#   cp .env.example .env
+#   # Edit .env so all host paths point to private local files.
+#   docker compose --env-file .env -f infra/compose/docker-compose.example.yaml run --rm ai-scout
+#
+# This file intentionally does not contain real secrets. Private config and
+# secret material are mounted from host paths that should live outside the repo.
+
+name: ai-scout-local
+
+services:
+  ai-scout:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.example
+    image: ai-scout/local:example
+    init: true
+    restart: "no"
+    read_only: true
+    environment:
+      AI_SCOUT_MODE: "${AI_SCOUT_MODE:-dry_run}"
+      AI_SCOUT_LOG_LEVEL: "${AI_SCOUT_LOG_LEVEL:-INFO}"
+      AI_SCOUT_COMMAND: "${AI_SCOUT_COMMAND:-ai-scout}"
+      AI_SCOUT_CONFIG_DIR: "${AI_SCOUT_CONTAINER_CONFIG_DIR:-/host-config}"
+      AI_SCOUT_DATA_DIR: "/data"
+      AI_SCOUT_REPORTS_DIR: "/data/reports"
+      AI_SCOUT_RUNS_DIR: "/data/runs"
+      AI_SCOUT_MEMORY_DIR: "/data/memory"
+      AI_SCOUT_SECRETS_DIR: "/run/host-secrets"
+      AI_SCOUT_AUTONOMOUS_CONFIRM: "${AI_SCOUT_AUTONOMOUS_CONFIRM:-}"
+      HOME: "/tmp"
+    volumes:
+      - type: bind
+        source: "${AI_SCOUT_HOST_CONFIG_DIR:?Set AI_SCOUT_HOST_CONFIG_DIR in .env}"
+        target: /host-config
+        read_only: true
+      - type: bind
+        source: "${AI_SCOUT_HOST_DATA_DIR:?Set AI_SCOUT_HOST_DATA_DIR in .env}"
+        target: /data
+      - type: bind
+        source: "${AI_SCOUT_HOST_SECRETS_DIR:?Set AI_SCOUT_HOST_SECRETS_DIR in .env}"
+        target: /run/host-secrets
+        read_only: true
+      - type: bind
+        source: ../../config
+        target: /repo-config
+        read_only: true
+    tmpfs:
+      - /tmp

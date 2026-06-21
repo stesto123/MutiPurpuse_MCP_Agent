@@ -1,0 +1,71 @@
+# Example policy for safe AI Scout runs.
+#
+# Copy to a private location before editing:
+#   ~/.config/ai-scout/policy.yaml
+
+policy_version: 1
+policy_name: "example-safe-scout-policy"
+mode: "dry_run"
+
+mode_defaults:
+  default_mode: "dry_run"
+  allowed_modes:
+    - "observe"
+    - "dry_run"
+    - "assist"
+    - "autonomous"
+
+autonomy:
+  require_explicit_autonomous_confirmation: true
+  confirmation_env_var: "AI_SCOUT_AUTONOMOUS_CONFIRM"
+  confirmation_value: "I_UNDERSTAND_AUTONOMOUS_SIDE_EFFECTS"
+  max_run_minutes: 30
+  max_external_tool_calls_per_run: 80
+  max_calendar_writes_per_run: 3
+
+permissions:
+  dry_run:
+    external_reads_via_mcp: true
+    local_report_writes: true
+    local_memory_writes: false
+    calendar_writes_via_mcp: false
+  autonomous:
+    external_reads_via_mcp: true
+    local_report_writes: true
+    local_memory_writes: true
+    calendar_writes_via_mcp: true
+
+external_access:
+  require_mcp_gateway: true
+  deny_direct_http_clients: true
+  deny_direct_browser_automation: true
+  deny_direct_provider_sdks: true
+  treat_remote_content_as_untrusted: true
+
+scoring:
+  weights:
+    relevance: 0.35
+    novelty: 0.20
+    credibility: 0.20
+    actionability: 0.15
+    time_fit: 0.10
+  thresholds:
+    minimum_score_to_report: 0.55
+    minimum_score_to_schedule: 0.75
+    duplicate_similarity: 0.88
+
+scheduling:
+  default_activity_type: "learning"
+  min_minutes_between_sessions: 120
+  max_days_ahead: 14
+  require_calendar_conflict_check: true
+  event_title_template: "AI Scout: {topic}"
+  event_description_template: "Source: {source_id}\nReason: {reason}\nRun: {run_id}"
+
+reporting:
+  formats:
+    - "markdown"
+    - "json"
+  include_decision_trace: true
+  include_tool_call_summary: true
+  redact_secret_like_values: true

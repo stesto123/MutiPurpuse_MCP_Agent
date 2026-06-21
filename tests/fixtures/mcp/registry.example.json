@@ -1,0 +1,65 @@
+{
+  "servers": [
+    {
+      "name": "fake_services",
+      "enabled": true,
+      "transport": {
+        "type": "in_memory"
+      },
+      "default_timeout_s": 0.25,
+      "tools": [
+        {
+          "name": "search_resources",
+          "capabilities": ["discovery.search"],
+          "required_inputs": ["query"],
+          "required_outputs": ["items"]
+        },
+        {
+          "name": "inspect_github",
+          "capabilities": ["github.inspect"],
+          "required_inputs": ["repository", "resource_type"],
+          "required_outputs": ["resource"]
+        },
+        {
+          "name": "video_metadata",
+          "capabilities": ["content.video_metadata"],
+          "required_inputs": ["url"],
+          "required_outputs": ["metadata"]
+        },
+        {
+          "name": "article_metadata",
+          "capabilities": ["content.article_metadata"],
+          "required_inputs": ["url"],
+          "required_outputs": ["metadata"]
+        },
+        {
+          "name": "calendar_read",
+          "capabilities": ["calendar.read"],
+          "required_inputs": ["start", "end"],
+          "required_outputs": ["events"]
+        },
+        {
+          "name": "calendar_write",
+          "capabilities": ["calendar.write"],
+          "required_inputs": ["event", "idempotency_key"],
+          "required_outputs": ["event_id", "idempotency_key"],
+          "redact_inputs": ["event.private_notes"]
+        },
+        {
+          "name": "filesystem_write",
+          "capabilities": ["filesystem.write"],
+          "required_inputs": ["path", "contents", "purpose"],
+          "required_outputs": ["path", "written"],
+          "redact_inputs": ["contents"]
+        },
+        {
+          "name": "report_write",
+          "capabilities": ["report.write"],
+          "required_inputs": ["path", "contents", "run_id"],
+          "required_outputs": ["path", "written", "run_id"],
+          "redact_inputs": ["contents"]
+        }
+      ]
+    }
+  ]
+}

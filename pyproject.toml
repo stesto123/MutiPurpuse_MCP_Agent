@@ -1,0 +1,63 @@
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-scout-agent"
+version = "0.1.0"
+description = "Local-first autonomous AI technology scouting agent orchestrated with LangGraph and MCP tools."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [
+  { name = "AI Scout Contributors" }
+]
+dependencies = [
+  "langgraph>=0.2.0",
+  "mcp>=1.0.0",
+  "pyyaml>=6.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0.0",
+  "pytest-asyncio>=0.23.0",
+  "ruff>=0.6.0",
+  "mypy>=1.10.0",
+]
+
+[project.scripts]
+ai-scout = "ai_scout.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_scout"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM"]
+ignore = [
+  "B008",
+  "B905",
+  "E402",
+  "E501",
+  "SIM108",
+  "SIM117",
+  "UP006",
+  "UP007",
+  "UP031",
+  "UP035",
+  "UP045",
+]
+
+[tool.mypy]
+python_version = "3.10"
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true

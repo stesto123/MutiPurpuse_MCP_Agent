@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  launchd template for scheduled local AI Scout runs on macOS.
+
+  Copy this file to:
+    ~/Library/LaunchAgents/com.example.ai-scout.plist
+
+  Then replace all /Users/YOUR_USER placeholders with local paths. Do not put
+  tokens, OAuth refresh credentials, or personal calendar IDs in this file.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.example.ai-scout</string>
+
+  <key>Disabled</key>
+  <true/>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/YOUR_USER/Projects/MutiPurpuse_MCP_Agent</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/sh</string>
+    <string>/Users/YOUR_USER/Projects/MutiPurpuse_MCP_Agent/infra/scripts/run-ai-scout.example.sh</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>AI_SCOUT_COMMAND</key>
+    <string>/Users/YOUR_USER/Projects/MutiPurpuse_MCP_Agent/.venv/bin/ai-scout</string>
+    <key>AI_SCOUT_MODE</key>
+    <string>dry_run</string>
+    <key>AI_SCOUT_LOG_LEVEL</key>
+    <string>INFO</string>
+    <key>AI_SCOUT_CONFIG_DIR</key>
+    <string>/Users/YOUR_USER/.config/ai-scout</string>
+    <key>AI_SCOUT_DATA_DIR</key>
+    <string>/Users/YOUR_USER/.local/share/ai-scout</string>
+    <key>AI_SCOUT_SECRETS_DIR</key>
+    <string>/Users/YOUR_USER/.config/ai-scout/secrets</string>
+  </dict>
+
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>8</integer>
+    <key>Minute</key>
+    <integer>30</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/YOUR_USER/Library/Logs/ai-scout/launchd.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/YOUR_USER/Library/Logs/ai-scout/launchd.err.log</string>
+</dict>
+</plist>
