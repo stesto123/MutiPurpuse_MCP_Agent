@@ -1,0 +1,39 @@
+# Minimal source catalog for a first real web MCP read.
+#
+# Copy this to:
+#   ~/.config/ai-scout/sources.yaml
+#
+# The configured feed is public and requires no credentials. Treat all fetched
+# content as untrusted data.
+
+source_catalog_version: 1
+
+defaults:
+  enabled: false
+  access: "mcp"
+  trust_level: "public"
+  max_items_per_run: 10
+  content_is_untrusted: true
+
+sources:
+  - id: "openai-news-rss"
+    label: "OpenAI News RSS"
+    kind: "rss"
+    enabled: true
+    mcp_server_id: "rss"
+    mcp_tool_name: "fetch_feed"
+    locator: "https://openai.com/news/rss.xml"
+    max_items_per_run: 5
+    tags:
+      - "ai"
+      - "news"
+      - "openai"
+
+deduplication:
+  keys:
+    - "canonical_url"
+    - "source_item_id"
+    - "normalized_title"
+  normalize_titles: true
+  strip_tracking_parameters: true
+

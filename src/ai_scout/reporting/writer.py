@@ -61,13 +61,18 @@ def render_markdown_report(run_id: str, state: Mapping[str, Any]) -> str:
             lines.append(f"- {error}")
         lines.append("")
 
-    selected = state.get("selected_resources") or state.get("ranked_resources") or []
+    selected = (
+        state.get("selected_resources")
+        or state.get("ranked_resources")
+        or state.get("ranked")
+        or []
+    )
     if selected:
         lines.extend(["## Selected Resources", ""])
         for index, resource in enumerate(_as_iterable(selected), start=1):
             resource_map = _to_mapping(resource)
-            title = resource_map.get("title") or resource_map.get("name") or "Untitled"
-            url = resource_map.get("url") or ""
+            title = _resource_title(resource_map)
+            url = _resource_url(resource_map)
             score = resource_map.get("score") or resource_map.get("final_score")
             score_text = f" score={score}" if score is not None else ""
             lines.append(f"{index}. {title}{score_text}")
@@ -75,7 +80,12 @@ def render_markdown_report(run_id: str, state: Mapping[str, Any]) -> str:
                 lines.append(f"   {url}")
         lines.append("")
 
-    activities = state.get("planned_activities") or state.get("activities") or []
+    activities = (
+        state.get("planned_activities")
+        or state.get("activities")
+        or state.get("learning_plan")
+        or []
+    )
     if activities:
         lines.extend(["## Planned Activities", ""])
         for activity in _as_iterable(activities):
@@ -120,6 +130,22 @@ def _to_mapping(value: Any) -> Mapping[str, Any]:
     if isinstance(value, Mapping):
         return value
     return {"value": value}
+
+
+def _resource_title(resource_map: Mapping[str, Any]) -> str:
+    nested_resource = _to_mapping(resource_map.get("resource") or {})
+    return str(
+        resource_map.get("title")
+        or resource_map.get("name")
+        or nested_resource.get("title")
+        or nested_resource.get("name")
+        or "Untitled"
+    )
+
+
+def _resource_url(resource_map: Mapping[str, Any]) -> str:
+    nested_resource = _to_mapping(resource_map.get("resource") or {})
+    return str(resource_map.get("url") or nested_resource.get("url") or "")
 
 
 def _json_safe(value: Any) -> Any:

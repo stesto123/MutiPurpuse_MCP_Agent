@@ -135,4 +135,6 @@ class GraphOrchestrationTests(TestCase):
         result = run_scout(state, deps, prefer_langgraph=False)
 
         self.assertEqual(result["calendar_events"][0]["status"], "dry_run_skipped")
+        self.assertEqual(result["availability"], [])
+        self.assertNotIn("calendar.read_availability", [call[0] for call in gateway.calls])
         self.assertNotIn("calendar.create_event", [call[0] for call in gateway.calls])

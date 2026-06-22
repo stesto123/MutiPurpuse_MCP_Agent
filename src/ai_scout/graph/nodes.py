@@ -157,6 +157,21 @@ def build_learning_plan_node(state: ScoutState, deps: GraphDependencies) -> Scou
 def read_calendar_availability_node(state: ScoutState, deps: GraphDependencies) -> ScoutState:
     state = ensure_state(state)
     config = state["config"]
+    policy = state["policy"]
+    if not _calendar_writes_allowed(policy, str(state.get("mode") or config.get("mode") or "")):
+        state["availability"] = []
+        _extend(
+            state,
+            log=[
+                log_entry(
+                    "calendar_availability",
+                    "availability_read_skipped",
+                    "Calendar availability read skipped by current mode/policy",
+                )
+            ],
+        )
+        return state
+
     request = {
         "run_id": state["run_id"],
         "tool_name": config.get("availability_tool", "calendar.read_availability"),

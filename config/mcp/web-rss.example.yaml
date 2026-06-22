@@ -1,0 +1,60 @@
+# Local MCP registry with one real low-risk web source.
+#
+# Copy this to:
+#   ~/.config/ai-scout/mcp.yaml
+#
+# It enables:
+# - rss.fetch_feed: public RSS/Atom fetch through the built-in MCP server
+# - content.inspect: metadata-only inspection through the built-in MCP server
+#
+# No API keys, OAuth, browser automation, or calendar access are required.
+
+mcp_registry_version: 1
+
+servers:
+  - name: "rss"
+    enabled: true
+    purpose: "Fetch configured RSS/Atom feeds through the built-in web feed MCP server"
+    transport:
+      type: "stdio"
+      command: "python3"
+      args:
+        - "-m"
+        - "ai_scout.mcp_servers.web_feed"
+    tools:
+      - name: "fetch_feed"
+        allow: true
+        timeout_s: 10
+        required_inputs:
+          - "locator"
+        required_outputs:
+          - "resources"
+    secrets: []
+
+  - name: "content"
+    enabled: true
+    purpose: "Inspect discovered resources into AI Scout summary and scoring signals"
+    transport:
+      type: "stdio"
+      command: "python3"
+      args:
+        - "-m"
+        - "ai_scout.mcp_servers.content_inspector"
+    tools:
+      - name: "inspect"
+        allow: true
+        timeout_s: 10
+        required_inputs:
+          - "resource"
+        required_outputs:
+          - "content_summary"
+          - "signals"
+          - "estimated_minutes"
+    secrets: []
+
+tool_policy:
+  default_allow: false
+  require_explicit_allowed_tools: true
+  log_all_calls: true
+  redact_secret_like_values: true
+

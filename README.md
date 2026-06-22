@@ -59,6 +59,22 @@ Edit the private copies and `.env` placeholders for your machine. Do not add
 real credentials, OAuth tokens, personal profile details, calendar IDs, runtime
 memory, or generated reports to Git.
 
+If you have never configured MCP before, start with the built-in local MCP
+servers instead of external accounts:
+
+```sh
+cp config/mcp/first-run.example.yaml ~/.config/ai-scout/mcp.yaml
+./scripts/run-dry.sh --config-dir ~/.config/ai-scout --data-dir ~/.local/share/ai-scout
+```
+
+This validates the real stdio MCP path with two repository-shipped servers:
+
+- `sources.discover`: deterministic local resources, no internet access.
+- `content.inspect`: metadata-only inspection into summary, signals, and effort.
+
+Keep calendar disabled for this first run. Dry-run mode skips calendar
+availability reads and calendar writes when policy disallows calendar writes.
+
 ## Dry-Run Mode
 
 Dry-run (`dry_run`) is the default mode. It should allow external reads only through

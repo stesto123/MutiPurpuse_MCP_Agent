@@ -31,6 +31,19 @@ cp config/mcp/servers.example.yaml ~/.config/ai-scout/mcp.yaml
 Do not edit real tokens or personal account values into committed example
 files.
 
+For a first MCP validation without external accounts, use the minimal local MCP
+registry instead of the full server template:
+
+```sh
+cp config/mcp/first-run.example.yaml ~/.config/ai-scout/mcp.yaml
+./scripts/run-dry.sh --config-dir ~/.config/ai-scout --data-dir ~/.local/share/ai-scout
+```
+
+This starts repository-shipped stdio MCP servers for `sources.discover` and
+`content.inspect`. They do not use secrets, fetch the internet, or write to a
+calendar. After this works, replace `sources` with real MCP source servers one
+at a time.
+
 ## Environment File
 
 For Docker Compose, copy the environment template and replace placeholder paths:

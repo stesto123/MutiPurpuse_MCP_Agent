@@ -10,6 +10,9 @@ sys.path.insert(0, str(ROOT / "src"))
 from ai_scout.mcp import Capability, ErrorCode, MCPRegistryError, MCPToolRegistry
 
 FIXTURE = ROOT / "tests" / "fixtures" / "mcp" / "registry.example.json"
+EXAMPLE_CONFIG = ROOT / "config" / "mcp" / "servers.example.yaml"
+FIRST_RUN_CONFIG = ROOT / "config" / "mcp" / "first-run.example.yaml"
+WEB_RSS_CONFIG = ROOT / "config" / "mcp" / "web-rss.example.yaml"
 
 
 class MCPRegistryTests(unittest.TestCase):
@@ -74,6 +77,39 @@ class MCPRegistryTests(unittest.TestCase):
             MCPToolRegistry.from_mapping(config)
 
         self.assertEqual(context.exception.code, ErrorCode.INVALID_CONFIG)
+
+    def test_public_example_includes_first_run_local_mcp_tools(self) -> None:
+        registry = MCPToolRegistry.from_file(EXAMPLE_CONFIG)
+
+        servers = registry.servers
+        self.assertIn("sources", servers)
+        self.assertIn("content", servers)
+        self.assertIn("discover", servers["sources"].tools)
+        self.assertIn("inspect", servers["content"].tools)
+        self.assertEqual(
+            servers["content"].tools["inspect"].required_outputs,
+            ("content_summary", "signals", "estimated_minutes"),
+        )
+
+    def test_first_run_example_enables_only_local_mcp_tools(self) -> None:
+        registry = MCPToolRegistry.from_file(FIRST_RUN_CONFIG)
+
+        self.assertTrue(registry.get_server("sources").enabled)
+        self.assertTrue(registry.get_server("content").enabled)
+        registry.validate_tool_call("sources", "discover", {"topics": ["MCP"]})
+        registry.validate_tool_call("content", "inspect", {"resource": {"title": "MCP"}})
+
+    def test_web_rss_example_enables_rss_and_content_tools(self) -> None:
+        registry = MCPToolRegistry.from_file(WEB_RSS_CONFIG)
+
+        self.assertTrue(registry.get_server("rss").enabled)
+        self.assertTrue(registry.get_server("content").enabled)
+        registry.validate_tool_call(
+            "rss",
+            "fetch_feed",
+            {"locator": "https://example.test/feed.xml"},
+        )
+        registry.validate_tool_call("content", "inspect", {"resource": {"title": "MCP"}})
 
 
 if __name__ == "__main__":

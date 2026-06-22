@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import asyncio
 import json
+import sys
+import time
 from collections.abc import Mapping
 from typing import Any
 
 from .client import MCPClient
-from .models import ErrorCode, ToolCallResult
+from .models import ErrorCode, MCPRegistryError, ToolCallResult
 from .registry import MCPToolRegistry
 
 
@@ -28,7 +31,24 @@ class StdioMCPClient(MCPClient):
         *,
         timeout_s: float | None = None,
     ) -> ToolCallResult:
-        del timeout_s
+        started = time.monotonic()
+        try:
+            server_spec = self.registry.get_server(server)
+            effective_timeout = (
+                timeout_s if timeout_s is not None else self.registry.timeout_for(server, tool)
+            )
+        except MCPRegistryError as exc:
+            return exc.to_result(server, tool)
+
+        if effective_timeout <= 0:
+            return ToolCallResult.failure(
+                server,
+                tool,
+                ErrorCode.VALIDATION_ERROR,
+                "MCP tool timeout must be positive.",
+                elapsed_s=_elapsed(started),
+            )
+
         try:
             from mcp import ClientSession, StdioServerParameters  # type: ignore
             from mcp.client.stdio import stdio_client  # type: ignore
@@ -39,9 +59,9 @@ class StdioMCPClient(MCPClient):
                 ErrorCode.INVALID_CONFIG,
                 "The mcp package is required for stdio MCP transport.",
                 details={"exception": str(exc)},
+                elapsed_s=_elapsed(started),
             )
 
-        server_spec = self.registry.get_server(server)
         transport = dict(server_spec.transport)
         if transport.get("type", "stdio") != "stdio":
             return ToolCallResult.failure(
@@ -50,6 +70,7 @@ class StdioMCPClient(MCPClient):
                 ErrorCode.INVALID_CONFIG,
                 "Only stdio MCP transport is supported by StdioMCPClient.",
                 details={"transport": transport.get("type")},
+                elapsed_s=_elapsed(started),
             )
         command = transport.get("command")
         if not command:
@@ -58,18 +79,34 @@ class StdioMCPClient(MCPClient):
                 tool,
                 ErrorCode.INVALID_CONFIG,
                 "MCP stdio server transport requires a command.",
+                elapsed_s=_elapsed(started),
             )
 
         params = StdioServerParameters(
-            command=str(command),
+            command=_resolve_command(str(command), transport),
             args=[str(arg) for arg in transport.get("args", [])],
             env={str(k): str(v) for k, v in dict(transport.get("env", {})).items()} or None,
         )
         try:
-            async with stdio_client(params) as (read, write):
-                async with ClientSession(read, write) as session:
-                    await session.initialize()
-                    raw_result = await session.call_tool(tool, dict(arguments))
+            raw_result = await asyncio.wait_for(
+                _call_stdio_tool(
+                    client_session=ClientSession,
+                    stdio_client_factory=stdio_client,
+                    params=params,
+                    tool=tool,
+                    arguments=arguments,
+                ),
+                timeout=effective_timeout,
+            )
+        except asyncio.TimeoutError:
+            return ToolCallResult.failure(
+                server,
+                tool,
+                ErrorCode.TIMEOUT,
+                "MCP tool call timed out after %.3f seconds." % effective_timeout,
+                retryable=True,
+                elapsed_s=_elapsed(started),
+            )
         except Exception as exc:  # pragma: no cover - requires real MCP server.
             return ToolCallResult.failure(
                 server,
@@ -77,6 +114,7 @@ class StdioMCPClient(MCPClient):
                 ErrorCode.TOOL_ERROR,
                 f"{exc.__class__.__name__}: {exc}",
                 details={"exception_type": exc.__class__.__name__},
+                elapsed_s=_elapsed(started),
             )
 
         data = _coerce_mcp_result(raw_result)
@@ -87,8 +125,23 @@ class StdioMCPClient(MCPClient):
                 ErrorCode.TOOL_ERROR,
                 str(data.get("text") or "MCP tool returned an error."),
                 details=data,
+                elapsed_s=_elapsed(started),
             )
-        return ToolCallResult.success(server, tool, data)
+        return ToolCallResult.success(server, tool, data, elapsed_s=_elapsed(started))
+
+
+async def _call_stdio_tool(
+    *,
+    client_session: Any,
+    stdio_client_factory: Any,
+    params: Any,
+    tool: str,
+    arguments: Mapping[str, Any],
+) -> Any:
+    async with stdio_client_factory(params) as (read, write):
+        async with client_session(read, write) as session:
+            await session.initialize()
+            return await session.call_tool(tool, dict(arguments))
 
 
 def _coerce_mcp_result(raw_result: Any) -> Mapping[str, Any]:
@@ -127,3 +180,13 @@ def _coerce_mcp_result(raw_result: Any) -> Mapping[str, Any]:
         "text": "\n".join(texts),
     }
 
+
+def _elapsed(started: float) -> float:
+    return time.monotonic() - started
+
+
+def _resolve_command(command: str, transport: Mapping[str, Any]) -> str:
+    use_current_python = bool(transport.get("use_current_python", command in {"python", "python3"}))
+    if use_current_python and command in {"python", "python3"}:
+        return sys.executable
+    return command

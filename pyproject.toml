@@ -28,6 +28,9 @@ dev = [
 
 [project.scripts]
 ai-scout = "ai_scout.cli:main"
+ai-scout-content-inspector = "ai_scout.mcp_servers.content_inspector:main"
+ai-scout-local-sources = "ai_scout.mcp_servers.local_sources:main"
+ai-scout-web-feed = "ai_scout.mcp_servers.web_feed:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ai_scout"]

@@ -17,26 +17,28 @@ class SyncMCPToolGateway:
         self.registry = registry
 
     def call_tool(self, tool_name: str, arguments: Mapping[str, Any]) -> Mapping[str, Any]:
-        server, tool = self._resolve_tool(tool_name)
-        result = asyncio.run(self.client.call_tool(server, tool, dict(arguments)))
+        server, tool, timeout_s = self._resolve_tool(tool_name)
+        result = asyncio.run(
+            self.client.call_tool(server, tool, dict(arguments), timeout_s=timeout_s)
+        )
         if not result.ok:
             if result.error is None:
                 raise RuntimeError(f"MCP tool {server}.{tool} failed")
             raise RuntimeError(result.error.message)
         return dict(result.data or {})
 
-    def _resolve_tool(self, tool_name: str) -> tuple[str, str]:
+    def _resolve_tool(self, tool_name: str) -> tuple[str, str, float]:
         try:
             binding = self.registry.resolve_capability(tool_name)
-            return binding.server, binding.tool
+            return binding.server, binding.tool, binding.timeout_s
         except MCPRegistryError:
             pass
 
         if "." not in tool_name:
             raise RuntimeError(
-                f"MCP tool {tool_name!r} is not a registered capability and is not in server.tool form."
+                f"MCP tool {tool_name!r} is not a registered capability "
+                "and is not in server.tool form."
             )
         server, tool = tool_name.split(".", 1)
         self.registry.require_tool(server, tool)
-        return server, tool
-
+        return server, tool, self.registry.timeout_for(server, tool)

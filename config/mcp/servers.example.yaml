@@ -9,6 +9,44 @@
 mcp_registry_version: 1
 
 servers:
+  - name: "sources"
+    enabled: false
+    purpose: "Built-in deterministic local sources for first MCP validation"
+    transport:
+      type: "stdio"
+      command: "python3"
+      args:
+        - "-m"
+        - "ai_scout.mcp_servers.local_sources"
+    tools:
+      - name: "discover"
+        allow: true
+        timeout_s: 5
+        required_outputs:
+          - "resources"
+    secrets: []
+
+  - name: "content"
+    enabled: false
+    purpose: "Inspect discovered resources into AI Scout summary and scoring signals"
+    transport:
+      type: "stdio"
+      command: "python3"
+      args:
+        - "-m"
+        - "ai_scout.mcp_servers.content_inspector"
+    tools:
+      - name: "inspect"
+        allow: true
+        timeout_s: 10
+        required_inputs:
+          - "resource"
+        required_outputs:
+          - "content_summary"
+          - "signals"
+          - "estimated_minutes"
+    secrets: []
+
   - name: "calendar"
     enabled: false
     purpose: "Read free/busy data and create learning events"
@@ -34,14 +72,21 @@ servers:
 
   - name: "rss"
     enabled: false
-    purpose: "Fetch configured RSS feeds"
+    purpose: "Fetch configured RSS/Atom feeds through the built-in web feed MCP server"
     transport:
       type: "stdio"
-      command: "/absolute/path/to/rss-mcp-server"
-      args: []
+      command: "python3"
+      args:
+        - "-m"
+        - "ai_scout.mcp_servers.web_feed"
     tools:
       - name: "fetch_feed"
         allow: true
+        timeout_s: 10
+        required_inputs:
+          - "locator"
+        required_outputs:
+          - "resources"
     secrets: []
 
   - name: "github"
@@ -108,6 +153,9 @@ tool_policy:
 # Runtime notes:
 # - Keep servers disabled in committed examples.
 # - In private config, enable only the MCP servers you actually run locally.
+# - For a first MCP-only dry run without external accounts, enable the built-in
+#   sources and content servers above, then keep calendar disabled.
 # - Discovery sources in sources.yaml call tools by server.tool name, for example
 #   github.search_repositories or web-search.search.
+# - The graph default inspector expects content.inspect.
 # - Calendar defaults expect calendar.read_availability and calendar.create_event.

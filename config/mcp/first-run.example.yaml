@@ -1,0 +1,55 @@
+# Minimal local MCP registry for first-run validation.
+#
+# Copy this to:
+#   ~/.config/ai-scout/mcp.yaml
+#
+# It uses only MCP servers shipped with this repository. It does not fetch
+# external data and does not require API keys, OAuth, or calendar credentials.
+
+mcp_registry_version: 1
+
+servers:
+  - name: "sources"
+    enabled: true
+    purpose: "Built-in deterministic local sources for first MCP validation"
+    transport:
+      type: "stdio"
+      command: "python3"
+      args:
+        - "-m"
+        - "ai_scout.mcp_servers.local_sources"
+    tools:
+      - name: "discover"
+        allow: true
+        timeout_s: 5
+        required_outputs:
+          - "resources"
+    secrets: []
+
+  - name: "content"
+    enabled: true
+    purpose: "Inspect discovered resources into AI Scout summary and scoring signals"
+    transport:
+      type: "stdio"
+      command: "python3"
+      args:
+        - "-m"
+        - "ai_scout.mcp_servers.content_inspector"
+    tools:
+      - name: "inspect"
+        allow: true
+        timeout_s: 10
+        required_inputs:
+          - "resource"
+        required_outputs:
+          - "content_summary"
+          - "signals"
+          - "estimated_minutes"
+    secrets: []
+
+tool_policy:
+  default_allow: false
+  require_explicit_allowed_tools: true
+  log_all_calls: true
+  redact_secret_like_values: true
+
